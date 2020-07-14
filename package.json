@@ -1,19 +1,20 @@
 {
-    "name": "kijiji_scrapper"
-  , "version": "0.0.1"
-  , "dependencies": {
-        "express": "3.0.3"
-      , "connect-assets": "2.3.3"
-      , "express-partials": ">= 0.0.5"
-      , "ejs": "*"
-      , "stylus": "*"
-      , "coffee-script": "*"
-    }
-  , "scripts": {
-      "start": "server.js"
-    }
-  , "engines": {
-        "node": "13.7.0"
-      , "npm": "1.1.x"
-    }
+  "name": "kijiji_scrapper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alcjho/kijiji_scrapper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alcjho/kijiji_scrapper/issues"
+  },
+  "homepage": "https://github.com/alcjho/kijiji_scrapper#readme"
 }
