@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,5 +17,14 @@
   "bugs": {
     "url": "https://github.com/alcjho/kijiji_scrapper/issues"
   },
-  "homepage": "https://github.com/alcjho/kijiji_scrapper#readme"
+  "homepage": "https://github.com/alcjho/kijiji_scrapper#readme",
+  "devDependencies": {
+    "electron": "^9.1.0"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "cheerio": "^1.0.0-rc.3",
+    "fs": "0.0.1-security",
+    "nodejs-web-scraper": "^3.1.0"
+  }
 }
