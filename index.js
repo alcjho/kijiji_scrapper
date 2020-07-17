@@ -5,6 +5,5 @@ const fn = require('./functions');
 // console.log(category);
 
 (async () => {
-    const ads = await fn.getAdsDetail();
-    console.log(ads);
+    const allAds = await fn.getAdsDetail();
 })();

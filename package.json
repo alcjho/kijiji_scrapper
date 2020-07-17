@@ -18,13 +18,13 @@
     "url": "https://github.com/alcjho/kijiji_scrapper/issues"
   },
   "homepage": "https://github.com/alcjho/kijiji_scrapper#readme",
-  "devDependencies": {
-    "electron": "^9.1.0"
-  },
+  "devDependencies": {},
   "dependencies": {
     "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
     "fs": "0.0.1-security",
-    "nodejs-web-scraper": "^3.1.0"
+    "libphonenumber-js": "^1.7.55",
+    "nodejs-web-scraper": "^3.1.0",
+    "phone-number-extractor": "^1.1.0"
   }
 }
