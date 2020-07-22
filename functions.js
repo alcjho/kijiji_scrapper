@@ -97,11 +97,21 @@ const getAdsDetail = async () => {
         let dataset = saveAdsData(value.link, value, ads);
         dataset.then(function(result){
             if(result){
+                //call database mapping function here : mapToContractorLead()
                 console.log(result);
             }
         })
     });
     
+}
+
+/**
+ * 
+ * @param {*} ad_row 
+ * @desc should be called within an array to map and save a row to the database
+ */
+const mapToContractorLead = function(ad_row){
+
 }
 
 
