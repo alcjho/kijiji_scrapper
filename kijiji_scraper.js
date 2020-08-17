@@ -1,10 +1,8 @@
+const timer = require('await-timeout');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
 const siteRoot = "https://www.kijiji.ca";
-const ads = new Set();
-const adsDetail = new Set();
-const positions = new Set();
 const extractor = require('libphonenumber-js');
 const dbconfig = require('./dbconfig');
 const mysql = require('mysql2/promise');
@@ -12,8 +10,13 @@ const params = require('./config');
 const jsonstr = [];
 
 const pool = mysql.createPool(dbconfig.srv5);
-const languages = require('./languages.json')
+const languages = require('./languages.json');
+const { timeout } = require('async');
 const default_lg = 'fr';
+
+let ads = [{}];
+let adsDetail = [{}];
+
 /**
  * 
  * @param {*} url 
@@ -59,7 +62,7 @@ const saveAdsData = async (url, data, dataset) => {
     if(phoneData[1] !== undefined && data.phone1 != phoneData[1].phone){
         data.phone2 = phoneData[1].phone;
     }
-    adsDetail.add(data);
+    adsDetail.push(data);
 
     if(adsDetail.size == dataset.size){
        return adsDetail;
@@ -71,11 +74,24 @@ const saveAdsData = async (url, data, dataset) => {
  * 
  */
 const getAds = async () => {
-    const $ = await loadSiteData(params.config.startUrl);
-    $('.regular-ad').each((index, element)=>{
-        ads.add({'title':$(element).find('.title').text(), 'link':$(element).find('.title').attr('href'), 'id':$(element).attr('data-listing-id')});
-    });    
+    // const $ = await loadSiteData(params.config.startUrl);
+    // $('.regular-ad').each((index, element)=>{
+    //     ads.push({'title':$(element).find('.title').text(), 'link':$(element).find('.title').attr('href'), 'id':$(element).attr('data-listing-id')});
+    // });
+    
+    ads.push({'title':'element1', 'link':'https://www.kijiji.ca', 'id':1});
+    ads.push({'title':'element1', 'link':'https://www.kijiji.ca', 'id':2});
+    ads.push({'title':'element1', 'link':'https://www.kijiji.ca', 'id':3});
 }
+
+/**
+ * recreate foreach function async
+ */
+async function asyncForEach(array, callback) {
+    for (let index = 0; index < array.length; index++) {
+      await callback(array[index], index, array);
+    }
+  }
 
 
 /**
@@ -83,18 +99,22 @@ const getAds = async () => {
  */
 const getAdsDetail = async () => {
     await getAds();
-    ads.forEach( (value, index, ads) =>{
-        
-        if(!value.link.includes(siteRoot)){
-            value.link = siteRoot + value.link;
-        }        
-        
-        let dataset = saveAdsData(value.link, value, ads);
-        dataset.then(function(result){
-            if(result){
-               mapToContractorLead(result);
+    await asyncForEach( ads, async (value) =>{  
+        await timer.set(5000);
+        if(value.link != undefined){
+            if(!value.link.includes(siteRoot)){
+                value.link = siteRoot + value.link;
             }
-        })
+        
+        
+            let dataset = saveAdsData(value.link, value, ads);
+
+            dataset.then(function(result){
+                if(result){
+                mapToContractorLead(result);
+                }
+            })
+        }   
     });
 }
 
