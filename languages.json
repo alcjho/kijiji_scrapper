@@ -1,5 +1,5 @@
 
 {
-    "fr": ["Quebec"],
-    "en": ["Ontario, Alberta, New Brunswick"]
+    "fr": ["Quebec","Ontario","Alberta","British Columbia"],
+    "en": ["Ontario","Alberta","Manitoba","New Brunswick","saskatchewan","British Columbia","Nova Scotia", "Nunavut","Yukon"]
 }

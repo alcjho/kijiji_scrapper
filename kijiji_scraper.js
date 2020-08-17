@@ -16,7 +16,8 @@ const default_lg = 'fr';
 
 let ads = [{}];
 let adsDetail = [{}];
-
+let numlang = 1;
+let lg = default_lg;
 /**
  * 
  * @param {*} url 
@@ -74,14 +75,10 @@ const saveAdsData = async (url, data, dataset) => {
  * 
  */
 const getAds = async () => {
-    // const $ = await loadSiteData(params.config.startUrl);
-    // $('.regular-ad').each((index, element)=>{
-    //     ads.push({'title':$(element).find('.title').text(), 'link':$(element).find('.title').attr('href'), 'id':$(element).attr('data-listing-id')});
-    // });
-    
-    ads.push({'title':'element1', 'link':'https://www.kijiji.ca', 'id':1});
-    ads.push({'title':'element1', 'link':'https://www.kijiji.ca', 'id':2});
-    ads.push({'title':'element1', 'link':'https://www.kijiji.ca', 'id':3});
+    const $ = await loadSiteData(params.config.startUrl);
+    $('.regular-ad').each((index, element)=>{
+        ads.push({'title':$(element).find('.title').text(), 'link':$(element).find('.title').attr('href'), 'id':$(element).attr('data-listing-id')});
+    });
 }
 
 /**
@@ -111,7 +108,7 @@ const getAdsDetail = async () => {
 
             dataset.then(function(result){
                 if(result){
-                mapToContractorLead(result);
+                    mapToContractorLead(result);
                 }
             })
         }   
@@ -137,20 +134,20 @@ const currentDateTime = function(){
 const mapToContractorLead = async function(ad_row){  
     for (let rec of ad_row.values()) {
         const select_query = "SELECT * FROM sr_contractor_leads WHERE phone = ?";
-        const insert_query = "INSERT INTO sr_contractor_leads(sn_cdate, sn_mdate, phone, phone2, province, region, comment, email, uid_lead, origin, lang, lg) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        const insert_query = "INSERT INTO sr_contractor_leads(sn_cdate, sn_mdate, phone, phone2, province, region, comment, email, uid_lead, origin, lang, languages) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         let date = new Date();
         
         if(rec.phone1 != ""){
             const select_result = await pool.query(select_query, [rec.phone1]);
 
             if(languages.fr.includes(rec.province) && !languages.en.includes(rec.province)){
-                let lang = 1;
+                let numlang = 1;
                 let lg = "fr";
             }else if(!languages.fr.includes(rec.province) && languages.en.includes(rec.province)){
-                let lang = 2;
+                let numlang = 2;
                 let lg = "en";
             }else if(languages.fr.includes(rec.province) && languages.en.includes(rec.province)){
-                let lang = 3;
+                let numlang = 3;
                 let lg = default_lg;
             }else{
 
@@ -158,7 +155,7 @@ const mapToContractorLead = async function(ad_row){
 
 
             if (!select_result[0].length > 0) {
-                const insert_result = await pool.query(insert_query, [currentDateTime(), currentDateTime(), rec.phone1, rec.phone2, rec.province, rec.city, rec.title, rec.email, rec.id, "kijiji.ca"], lang, lg);
+                const insert_result = await pool.query(insert_query, [currentDateTime(), currentDateTime(), rec.phone1, rec.phone2, rec.province, rec.city, rec.title, rec.email, rec.id, "kijiji.ca"], numlang, lg);
                 console.log('phone number ' + rec.phone1 + " has been inserted");
             }else{
                 console.log("phone number " + rec.phone1 + " already exists - operation aborted");
