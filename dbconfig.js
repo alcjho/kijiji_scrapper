@@ -1,8 +1,11 @@
-const db = {
-    'db_host':'soumissionrenovation.ca',
-    'db_name':'srv5',
-    'db_pass':'',
-    'db_port':'3306'
+const srv5 = {
+    host: 'localhost',
+    user: 'manager',
+    database: 'srv5',
+    password: '_Passwd01',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 }
 
-exports.db = db;
+exports.srv5 = srv5;

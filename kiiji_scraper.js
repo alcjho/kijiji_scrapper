@@ -1,13 +1,19 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
-var params = require('./config');
 const siteRoot = "https://www.kijiji.ca";
 const ads = new Set();
 const adsDetail = new Set();
 const positions = new Set();
 const extractor = require('libphonenumber-js');
+const dbconfig = require('./dbconfig');
+const mysql = require('mysql2/promise');
+const params = require('./config');
+
 const jsonstr = [];
+
+const pool = mysql.createPool(dbconfig.srv5);
+
 
 /**
  * 
@@ -36,9 +42,9 @@ const saveAdsData = async (url, data, dataset) => {
             case 1:
             data.city = $(element).text();
             break;
-        }
-        
-    }); 
+        } 
+    });
+
     description = $('[class^=descriptionContainer]').find('div[itemprop=description]').text();
     emails = (extractEmails(description) != null)? extractEmails(description).join(','):'';
     let phoneData = extractor.findNumbers(description, "CA");
@@ -90,6 +96,7 @@ const getAds = async () => {
 const getAdsDetail = async () => {
     await getAds();
     ads.forEach( (value, index, ads) =>{
+        
         if(!value.link.includes(siteRoot)){
             value.link = siteRoot + value.link;
         }        
@@ -97,12 +104,21 @@ const getAdsDetail = async () => {
         let dataset = saveAdsData(value.link, value, ads);
         dataset.then(function(result){
             if(result){
-                //call database mapping function here : mapToContractorLead()
-                console.log(result);
+               mapToContractorLead(result);
             }
         })
     });
-    
+}
+
+const currentDateTime = function(){
+    currentdate = new Date();
+    var datetime = currentdate.getFullYear() + "/"
+    + (currentdate.getMonth()+1)  + "/" 
+    + currentdate.getDate() + " "  
+    + currentdate.getHours() + ":"  
+    + currentdate.getMinutes() + ":" 
+    + currentdate.getSeconds();  
+    return datetime;  
 }
 
 /**
@@ -110,8 +126,21 @@ const getAdsDetail = async () => {
  * @param {*} ad_row 
  * @desc should be called within an array to map and save a row to the database
  */
-const mapToContractorLead = function(ad_row){
+const mapToContractorLead = async function(ad_row){  
+    for (let rec of ad_row.values()) {
+        const select_query = "SELECT * FROM sr_contractor_leads WHERE phone = ?";
+        const insert_query = "INSERT INTO sr_contractor_leads(sn_cdate, sn_mdate, phone, phone2, province, region, comment, email, uid_lead) values(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        let date = new Date();
 
+        if(rec.phone1 != ""){
+            const select_result = await pool.query(select_query, [rec.phone1]);
+            
+            if (!select_result[0].length > 0) {
+                const insert_result = await pool.query(insert_query, [currentDateTime(), currentDateTime(), rec.phone1, rec.phone2, rec.province, rec.city, rec.title, rec.email, rec.id]);
+                console.log('phone number ' + rec.phone1 + " has been inserted");
+            }
+        }
+    }
 }
 
 
@@ -180,3 +209,4 @@ function AddZero(num) {
 
 exports.getAdsDetail = getAdsDetail;
 exports.getAdsDetailv2 = getAdsDetailv2;
+exports.currentDateTime = currentDateTime;

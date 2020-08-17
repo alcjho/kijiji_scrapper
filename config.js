@@ -6,4 +6,9 @@ const config =  {
     logPath: './logs/'//Highly recommended: Creates a friendly JSON for each operation object, with all the relevant data. 
 };
 
+const config_rbq = {
+    baseSiteUrl: `https://www.pes.rbq.gouv.qc.ca/RegistreLicences/Recherche?mode=Entreprise`,
+}
+
 exports.config = config;
+exports.config_rbq = config_rbq;
