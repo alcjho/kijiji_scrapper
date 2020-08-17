@@ -9,12 +9,11 @@ const extractor = require('libphonenumber-js');
 const dbconfig = require('./dbconfig');
 const mysql = require('mysql2/promise');
 const params = require('./config');
-
 const jsonstr = [];
 
 const pool = mysql.createPool(dbconfig.srv5);
-
-
+const languages = require('./languages.json')
+const default_lg = 'fr';
 /**
  * 
  * @param {*} url 
@@ -71,17 +70,6 @@ const saveAdsData = async (url, data, dataset) => {
 /**
  * 
  */
-const getAdsv2 = async () => {
-    const $ = await loadSiteData(params.config.startUrl);
-    $('.regular-ad').each((index, element)=>{
-        jsonstr.push({'title':$(element).find('.title').text(), 'link':$(element).find('.title').attr('href'), 'id':$(element).attr('data-listing-id')});
-    });    
-}
-
-
-/**
- * 
- */
 const getAds = async () => {
     const $ = await loadSiteData(params.config.startUrl);
     $('.regular-ad').each((index, element)=>{
@@ -129,63 +117,34 @@ const currentDateTime = function(){
 const mapToContractorLead = async function(ad_row){  
     for (let rec of ad_row.values()) {
         const select_query = "SELECT * FROM sr_contractor_leads WHERE phone = ?";
-        const insert_query = "INSERT INTO sr_contractor_leads(sn_cdate, sn_mdate, phone, phone2, province, region, comment, email, uid_lead) values(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        const insert_query = "INSERT INTO sr_contractor_leads(sn_cdate, sn_mdate, phone, phone2, province, region, comment, email, uid_lead, origin, lang, lg) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         let date = new Date();
-
+        
         if(rec.phone1 != ""){
             const select_result = await pool.query(select_query, [rec.phone1]);
-            
+
+            if(languages.fr.includes(rec.province) && !languages.en.includes(rec.province)){
+                let lang = 1;
+                let lg = "fr";
+            }else if(!languages.fr.includes(rec.province) && languages.en.includes(rec.province)){
+                let lang = 2;
+                let lg = "en";
+            }else if(languages.fr.includes(rec.province) && languages.en.includes(rec.province)){
+                let lang = 3;
+                let lg = default_lg;
+            }else{
+
+            }
+
+
             if (!select_result[0].length > 0) {
-                const insert_result = await pool.query(insert_query, [currentDateTime(), currentDateTime(), rec.phone1, rec.phone2, rec.province, rec.city, rec.title, rec.email, rec.id]);
+                const insert_result = await pool.query(insert_query, [currentDateTime(), currentDateTime(), rec.phone1, rec.phone2, rec.province, rec.city, rec.title, rec.email, rec.id, "kijiji.ca"], lang, lg);
                 console.log('phone number ' + rec.phone1 + " has been inserted");
+            }else{
+                console.log("phone number " + rec.phone1 + " already exists - operation aborted");
             }
         }
     }
-}
-
-
-/**
- * 
- */
-const getAdsDetailv2 = async () => {
-    await getAdsv2();
-
-    for(var key in jsonstr){
-        if(!jsonstr[key].link.includes(siteRoot)){
-            jsonstr[key].link = siteRoot + jsonstr[key].link;
-        } 
-       const $ = await loadSiteData(jsonstr[key].link);
-
-       $('[class^=crumbItem]').each((index, element)=>{
-            switch(index){
-                case 0:
-                jsonstr[key].province = $(element).text();
-                break;
-
-                case 1:
-                jsonstr[key].city = $(element).text();
-                break;
-            }
-        
-        }); 
-
-        description = $('[class^=descriptionContainer]').find('div[itemprop=description]').text();
-        emails = (extractEmails(description) != null)? extractEmails(description).join(','):'';
-        let phoneData = extractor.findNumbers(description, "CA");
-        jsonstr[key].phone1='';
-        jsonstr[key].phone2='';
-
-        jsonstr[key].email = emails;
-
-        if(phoneData[0] !== undefined){
-            jsonstr[key].phone1 = phoneData[0].phone;
-        }
-
-        if(phoneData[1] !== undefined && jsonstr[key].phone1 != phoneData[1].phone){
-            jsonstr[key].phone2 = phoneData[1].phone;
-        } 
-    }
-    console.log(jsonstr);
 }
 
 
@@ -208,5 +167,4 @@ function AddZero(num) {
 }
 
 exports.getAdsDetail = getAdsDetail;
-exports.getAdsDetailv2 = getAdsDetailv2;
 exports.currentDateTime = currentDateTime;

@@ -2,7 +2,7 @@
 
 ### PROJECT DESCRIPTION
 
-Créer une application nodejs pour charger les annonces sur kijiji dans soumissionrenovation.ca. Le chargement se fera a chaque heure dans la base de données MySQL.
+Créer une application nodejs pour charger les annonces sur kijiji dans soumissionrenovation.ca. Le chargement se fera tous les 5 minutes dans une base de données MySQL.
 
 ### LIBRAIRIES
 
@@ -13,7 +13,7 @@ Créer une application nodejs pour charger les annonces sur kijiji dans soumissi
 
 ### STRUCTURE
 
-`Fonctions.js`
+`kijiji_scraper.js`
 Ce fichier représente le core de l'application vu qu'il fourni toutes les fonctions nécessaire au scrapping
 
 `Index.js`
@@ -23,6 +23,9 @@ ce fichier est le principale de l'application nodejs. Il contient la tache autom
 Contient les parametres de configuration de l'application tels que:
 **baseSiteUrl** : qui est le url de base de kijiji
 **startUrl** : qui est le url utilisé au demarrage de l'appli pour trouver les annonces.
+
+`dbconfig.js`
+Contient les paramètres de connexion a la base de données MySQL:
 
 ### FUNCTIONNALITES
 
