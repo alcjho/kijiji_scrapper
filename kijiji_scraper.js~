@@ -166,6 +166,21 @@ const mapToContractorLead = async function(data){
 }
 
 
+/**
+ * Verify  if phone already exists in database
+ * */
+async function phoneNumberExists(phone){
+	const select_query = "SELECT * FROM sr_contractor_leads WHERE phone = ?";
+	const select_result = await pool.query(select_query, [phone]);
+	
+	if(select_reqult[0].length > 0){
+		return true;
+	}else{
+		return false;
+	}
+
+
+}
 
 /**
  * 

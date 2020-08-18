@@ -1,8 +1,8 @@
 const srv5 = {
-    host: 'blackwidow',
-    user: 'micheljodoin',
+    host: 'localhost',
+    user: 'manager',
     database: 'srv5',
-    password: 'NPVVTsDdPwf7TTzfWAQj3QNBvsZ478oxuu4M3cB2j7xLDq7HBw',
+    password: '_Passwd01',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
