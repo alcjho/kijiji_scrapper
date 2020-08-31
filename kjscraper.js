@@ -10,6 +10,8 @@ console.log("-------------------------------------------------------------------
 
 // start first rope immediately calling getAdsDetail()
 fn.getAdsDetail().then(result=>{ fn.mapToContractorLead(result) });
+    
+
 
 //create a schedule before continue
 var secondes = "";     // (0-59) optional

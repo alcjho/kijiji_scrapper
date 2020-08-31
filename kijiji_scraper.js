@@ -37,71 +37,12 @@ const loadSiteData = async (url) => {
    return {page, browser};
 }
 
-
-/**
- * 
- * @param {*} url 
- * @param {*} data 
- * @param {*} dataset 
- */
-const saveAdsData = async (url, data, dataset) => {
-    const $ = await loadSiteData(url);
-    $('[class^=crumbItem]').each((index, element)=>{
-        switch(index){
-            case 0:
-            data.province = $(element).text();
-            break;
-
-            case 1:
-            data.city = $(element).text();
-            break;
-        } 
-    });
-
-    description = $('[class^=descriptionContainer]').find('div[itemprop=description]').text();
-    emails = (extractEmails(description) != null)? extractEmails(description).join(','):'';
-    let phoneData = extractor.findNumbers(description, "CA");
-    data.phone1='';
-    data.phone2='';
-
-    data.email = emails;
-
-    if(phoneData[0] !== undefined){
-        data.phone1 = phoneData[0].phone;
-    }
-
-    if(phoneData[1] !== undefined && data.phone1 != phoneData[1].phone){
-        data.phone2 = phoneData[1].phone;
-    }
-
-	return data;
-
-/*	console.log(data);
-    adsDetail.push(data);
-
-    if(adsDetail.size == dataset.size){
-       return adsDetail;
-    }
-*/
-}
-
-
-/**
- * recreate foreach function async
- */
-async function asyncForEach(array, callback) {
-    for (let index = 0; index < array.length; index++) {
-      await callback(array[index], index, array);
-    }
-  }
-
-
 /**
  * 
  */
 const getAdsDetail = async () => {
 
-    const {page, browser} = await loadSiteData("https://www.kijiji.ca/b-skilled-trades/canada/c76l0");
+    const {page, browser} = await loadSiteData(config.config.baseSiteUrl);
     
     const links_array = await page.$$('.regular-ad');
     urls = [];
