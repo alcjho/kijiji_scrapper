@@ -9,13 +9,13 @@ console.log("STARTING FIRST ROPE ON " + fn.currentDateTime());
 console.log("-----------------------------------------------------------------------------");
 
 // start first rope immediately calling getAdsDetail()
-fn.getAdsDetail().then(result=>{ fn.mapToContractorLead(result) });
+fn.getAdsDetail(2).then(result=>{ fn.mapToContractorLead(result) });
     
 
 
 //create a schedule before continue
 var secondes = "";     // (0-59) optional
-var minutes = "*/15";     // (0-59) required
+var minutes = "*/20";     // (0-59) required
 var hour = "*";         // (0-23) required
 var day_of_month = "*"; // (1-31) required
 var month = "*";        // (1-12) required
@@ -31,6 +31,6 @@ var task = schedule.scheduleJob(scrapschedule, async function(){
     console.log("ROPE SARTED ON " + fn.currentDateTime());
     console.log("-----------------------------------------------------------------------------");
     
-    //await fn.getAdsDetail();
+    await fn.getAdsDetail();
 
 });

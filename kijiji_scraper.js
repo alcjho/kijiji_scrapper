@@ -22,6 +22,9 @@ let lg = default_lg;
  * @param {*} url 
  */
 const loadSiteData = async (url) => {
+    if(!url)
+    return
+
    // 1- Load the first url and jquery librairy
    const browser = await puppeteer.launch({headless: true, args:['--no-sandbox', 'disabled-setuid-sandbox']});
    const page = await browser.newPage();
@@ -40,16 +43,18 @@ const loadSiteData = async (url) => {
 /**
  * 
  */
-const getAdsDetail = async () => {
+const getAdsDetail = async (limit) => {
 
     const {page, browser} = await loadSiteData(config.config.baseSiteUrl);
     
     const links_array = await page.$$('.regular-ad');
+    
     urls = [];
     data = [];
     let progress = '|';
 
-    for (i=0;i<links_array.length;i++){
+    limit = limit?limit:links_array.length;
+    for (i=0;i<limit;i++){
         const href =  await links_array[i].$eval('.title', el => el.getAttribute('href'));
         const brief_desc =  await links_array[i].$eval('.title', el => el.textContent);
         urls.push({'url': href, 'desc': brief_desc});
@@ -59,64 +64,68 @@ const getAdsDetail = async () => {
         jsonrow = {};
 
         try{
-            await page.goto(siteRoot + urls[i].url, {waitUntil: 'domcontentloaded'});
-            await page.addScriptTag({url: 'https://code.jquery.com/jquery-3.5.1.min.js'});
-            
-            // get add id from current link
-            let ad_id = urls[i].url.split('/')[urls[i].url.split('/').length - 1];
-            jsonrow.id = ad_id;
-
-            // fetch description and extract phone number first
-            let description = await page.$eval('[class^=descriptionContainer]', el => el.textContent);
-            if(description != undefined && description != null){             
-                let phoneData = extractor.findNumbers(description, "CA");
-                jsonrow.description = urls[i].desc;
-                jsonrow.phone1='';
-                jsonrow.phone2='';
+            if(urls[i]){
+                await page.goto(siteRoot + urls[i].url, {waitUntil: 'domcontentloaded'});
+                await page.addScriptTag({url: 'https://code.jquery.com/jquery-3.5.1.min.js'});
                 
-                if(phoneData[0] !== undefined){
-                    jsonrow.phone1 = phoneData[0].phone;
-                }
-            
-                if(phoneData[1] !== undefined && jsonrow.phone1 != phoneData[1].phone){
-                    jsonrow.phone2 = phoneData[1].phone;
-                }
+                // get add id from current link
+                let ad_id = urls[i].url.split('/')[urls[i].url.split('/').length - 1];
+                jsonrow.id = ad_id;
 
-                emails = (extractEmails(description) != null)? extractEmails(description).join(','):'';
-                jsonrow.email = emails;
+                // fetch description and extract phone number first
+                let description = await page.$eval('[class^=descriptionContainer]', el => el.textContent);
+                if(description != undefined && description != null){             
+                    let phoneData = extractor.findNumbers(description, "CA");
+                    jsonrow.description = urls[i].desc;
+                    jsonrow.phone1='';
+                    jsonrow.phone2='';
+                    
+                    if(phoneData[0] !== undefined){
+                        jsonrow.phone1 = phoneData[0].phone;
+                    }
                 
-            }
-            
-            if((jsonrow.phone1 == "") && (jsonrow.phone2 == "")){
-                continue;
-            }
-
-            //continue execution only if there is at least one phone number
-            let crumbItems = await page.$$('[class^=crumbItem]');
-            for (let i = 0; i < crumbItems.length; i++) {
-                const item = await (await crumbItems[i].getProperty('innerText')).jsonValue();
-
-                switch(i){
-                    case 0:
-                    jsonrow.province = item;
-                    break;
-        
-                    case 1:
-                    jsonrow.city = item;
-                    break;
-
-                    case 2:
-                    if(crumbItems.length >= 6){
-                        jsonrow.area = item;
+                    if(phoneData[1] !== undefined && jsonrow.phone1 != phoneData[1].phone){
+                        jsonrow.phone2 = phoneData[1].phone;
                     }
-                    break;
 
-                    case 6:
-                    if(crumbItems.length >= 6){
-                        jsonrow.service = item;
-                    }
-                    break;                    
-                } 
+                    emails = (extractEmails(description) != null)? extractEmails(description).join(','):'';
+                    jsonrow.email = emails;
+                    
+                }
+                
+                if((jsonrow.phone1 == "") && (jsonrow.phone2 == "")){
+                    continue;
+                }
+
+                let province_el = (await page.$eval('[class^=address-]', el => el.textContent));
+                let address = province_el;
+                let province_arr = address.split(', ');
+
+                jsonrow.address = address;
+                let province = province_arr[province_arr.length - 2];
+                if(province.indexOf(' ') !== -1){
+                    jsonrow.zip = (province.split(' ')[1]?province.split(' ')[1]:'') + (province.split(' ')[2]?(' '+province.split(' ')[2]):'');
+                    province = province.split(' ')[0]
+                }
+                jsonrow.province = province;
+
+                //continue execution only if there is at least one phone number
+                let crumbItems = await page.$$('[class^=crumbItem]');
+                for (let i = 0; i < crumbItems.length; i++) {
+                    const item = await (await crumbItems[i].getProperty('innerText')).jsonValue();
+
+                    switch(i){
+                        case 3:
+                        let city_str = (item.split(' in ')[1]).replace('City of ','');
+                        jsonrow.city = city_str;
+                        if((city_str && city_str.indexOf('/') !== -1) || (city_str && city_str.indexOf('/') !== -1)){
+                            jsonrow.city = (city_str.split(' / ')[0])
+                        }
+
+                        jsonrow.service = item.split(' in ')[0];
+                        break;                   
+                    } 
+                }
             }
 
             data.push(jsonrow);
@@ -157,10 +166,12 @@ const currentDateTime = function(){
  */
 const mapToContractorLead = async function(data){
     let n = 0;
+
+    console.log(data);
     
     for(ads of data)  {
         const select_query = "SELECT * FROM sr_contractor_leads WHERE phone = ?";
-        const insert_query = "INSERT INTO sr_contractor_leads(sn_cdate, sn_mdate, phone, phone2, province, region, comment, email, uid_lead, origin, lang, languages) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        const insert_query = "INSERT INTO sr_contractor_leads(sn_cdate, sn_mdate, phone, phone2, province, region, comment, email, uid_lead, origin, lang, languages, address) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
         let date = new Date();
         
 
@@ -182,7 +193,7 @@ const mapToContractorLead = async function(data){
             }
 
             if (select_result[0].length == 0) {
-                const insert_result = await pool.query(insert_query, [currentDateTime(), currentDateTime(), ads.phone1, ads.phone2, ads.province, ads.city, ads.title, ads.email, ads.id, "kijiji.ca", lg, numlang]);
+                const insert_result = await pool.query(insert_query, [currentDateTime(), currentDateTime(), ads.phone1, ads.phone2, ads.province, ads.city, ads.title, ads.email, ads.id, "kijiji.ca", lg, numlang, ads.address]);
                 n = n + 1;
             }
         }

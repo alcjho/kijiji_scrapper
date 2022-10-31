@@ -1,8 +1,8 @@
 const srv5 = {
-    host: 'localhost',
-    user: 'manager',
+    host: 'soumissionrenovation.ca',
+    user: 'micheljodoin',
     database: 'srv5',
-    password: '_Passwd01',
+    password: 'NPVVTsDdPwf7TTzfWAQj3QNBvsZ478oxuu4M3cB2j7xLDq7HBw',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0

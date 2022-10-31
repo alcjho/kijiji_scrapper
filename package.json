@@ -30,6 +30,7 @@
     "mysql2": "^2.1.0",
     "node-schedule": "^1.3.2",
     "phone-number-extractor": "^1.1.0",
+    "puppeteer": "^19.2.0",
     "puppeteer-core": "^5.2.1"
   }
 }
