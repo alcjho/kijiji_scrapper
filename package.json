@@ -24,7 +24,7 @@
     "await-timeout": "^1.1.1",
     "fs": "0.0.1-security",
     "got": "^11.0.2",
-    "jsdom": "^16.2.2",
+    "jsdom": "^16.5.0",
     "libphonenumber-js": "^1.7.55",
     "lodash": "^4.17.20",
     "mysql2": "^2.1.0",
